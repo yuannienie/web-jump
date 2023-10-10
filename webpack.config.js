@@ -4,7 +4,7 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const buildPath = './build/';
 
 module.exports = {
-  entry: ['./src/entry.js'],
+  entry: ['./src/index.js'],
   output: {
     path: path.join(__dirname, buildPath),
     filename: '[name].[hash].js'
@@ -17,15 +17,19 @@ module.exports = {
       {
         test: /\.js$/,
         use: 'babel-loader',
-        exclude: path.resolve(__dirname, './node_modules/')
-      },{
+        exclude: path.resolve(__dirname, './node_modules/'),
+      }, {
         test: /\.(jpe?g|png|gif|svg|tga|glb|babylon|mtl|pcb|pcd|prwm|obj|mat|mp3|ogg)$/i,
         use: 'file-loader',
-        exclude: path.resolve(__dirname, './node_modules/')
+        exclude: path.resolve(__dirname, './node_modules/'),
+      }, {
+        test: /\.css$/,
+        use: ['style-loader', 'css-loader'],
+        exclude: path.resolve(__dirname, './node_modules/'),
       }
     ]
   },
   plugins: [
-    new HtmlWebpackPlugin({'title': 'three-seed project'})
+    new HtmlWebpackPlugin({ 'title': 'web jump game in threejs' })
   ]
 }
