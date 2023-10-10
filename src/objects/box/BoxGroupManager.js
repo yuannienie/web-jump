@@ -15,6 +15,8 @@ export default class BoxGroupManager {
         // 上一个盒子引用
         this.last = null;
         this.group = new THREE.Group();
+        // 小人引用，盒子移动的时候带上小人
+        this.littleMan = null;
     }
 
     createBox() {
@@ -48,8 +50,9 @@ export default class BoxGroupManager {
             .onUpdate(({ x, z }) => {
                 const deltaX = x - lastX;
                 const deltaZ = z - lastZ;
-                // 更新盒子
+                // 更新盒子与小人位置
                 this.updateBoxPositionInChain(deltaX, deltaZ);
+                this.updateLittleManPosition(deltaX, deltaZ);
                 lastX = x;
                 lastZ = z;
             })
@@ -71,5 +74,17 @@ export default class BoxGroupManager {
             tail.updateXZPosition(position);
             tail = tail.prev;
         }
+    }
+
+    // 更新小人位置
+    updateLittleManPosition(deltaX, deltaZ) {
+        if (this.littleMan) {
+            this.littleMan.body.translateX(-deltaX);
+            this.littleMan.body.translateZ(-deltaZ);
+        }
+    }
+
+    setLittleMan(littleMan) {
+        this.littleMan = littleMan;
     }
 }
