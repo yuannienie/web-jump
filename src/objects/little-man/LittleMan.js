@@ -1,15 +1,23 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
 import { LITTLE_MAN_COLOR, LITTLE_MAN_HEIGHT, LITTLE_MAN_WIDTH } from '../../constants/constants';
+import { isMobile } from '../../util/common';
+import TWEEN from '@tweenjs/tween.js';
+import Box from '../box/Box';
+import { animateFrame } from '../../util/TweenUtil';
+
 /**
  * 跳跃小人类对象，需要注意几点：
  * 1. 蓄力跳跃的时候躯干会有压缩的动画，但是头部没有，所以头和躯干应该分开渲染
  * 2. 小人空中跳跃翻转身体需要以自身的中心翻转，需要临时变换坐标系
  */
-export default class LittleMan {
-    constructor(boxGroupManager) {
+class LittleMan {
+    constructor(boxGroupManager, stage) {
         // boxGroupMananger 的引用，用于确认小人的初始位置
         this.boxGroupManager = boxGroupManager;
+        this.stage = stage;
+        // 站立的盒子
+        this.box = null;
         // 定义小人材质
         this.roleMaterial = new THREE.MeshLambertMaterial({ color: LITTLE_MAN_COLOR });
         // 头部
@@ -23,6 +31,16 @@ export default class LittleMan {
         // 控制旋转的部分
         // 和 body 的区别在于坐标基点不同，也就导致旋转的中心不同
         this.bodyRotate = null;
+        // 小人此时的状态
+        this.state = LittleMan.State.init;
+        // 蓄力时头部位置
+        this.headYPosition = LITTLE_MAN_HEIGHT / 2;
+        // 蓄力时躯干向下压缩比
+        this.trunkScaleY = 1;
+        // 蓄力时躯干横向扩张比
+        this.trunkScaleXZ = 1;
+        // 蓄力时盒子向下压缩比
+        this.boxScaleY = 1;
         this.init();
     }
 
@@ -31,6 +49,7 @@ export default class LittleMan {
         this.initTrunk();
         this.initBody();
         this.initPosition();
+        this.initEventListener();
     }
 
     initHead() {
@@ -97,4 +116,88 @@ export default class LittleMan {
         this.box = this.boxGroupManager.last.prev;
         this.body.translateY(this.box.height);
     }
+
+    initEventListener() {
+        const upEvent = isMobile ? 'touchend' : 'mouseup';
+        const downEvent = isMobile ? 'touchstart' : 'mousedown';
+        const container = this.stage.renderer.domElement;
+        // 松开事件
+        container.addEventListener(upEvent, (e) => {
+            e.preventDefault();
+            if (this.state === LittleMan.State.accumulation) {
+                this.state = LittleMan.State.jump;
+                // TODO: 跳跃
+                this.jump();
+            }
+        }, false);
+
+        // 按下事件
+        container.addEventListener(downEvent, (e) => {
+            e.preventDefault();
+            if (this.state === LittleMan.State.init) {
+                this.state = LittleMan.State.accumulation;
+                // TODO 脚下粒子聚集特效
+                // 小人蓄力形变
+                this.accmulate();
+            }
+        }, false);
+    }
+
+    accmulate() {
+        const tween = new TWEEN.Tween({
+            // 因为翻转中心设置过头和躯干的参考系，这里的高度为 LITTLE_MAN_HEIGHT / 2
+            headYPosition: LITTLE_MAN_HEIGHT / 2,
+            trunkScaleXZ: 1,
+            trunkScaleY: 1,
+            boxScaleY: 1
+        }).to({
+            headYPosition: LITTLE_MAN_HEIGHT / 2 - this.trunkHeight * 0.4,
+            trunkScaleXZ: 1.3,
+            trunkScaleY: 0.6,
+            boxScaleY: 0.6
+        }, 1500)
+            .easing(TWEEN.Easing.Linear.None)
+            .onUpdate(({
+                headYPosition,
+                trunkScaleXZ,
+                trunkScaleY,
+                boxScaleY,
+            }) => {
+                if (this.state !== LittleMan.State.accumulation) {
+                    tween.stop();
+                }
+                // 记录下躯干的缩放程度，用于计算跳跃初始速度
+                this.trunkScaleY = trunkScaleY;
+                this.headYPosition = headYPosition;
+                this.trunkScaleXZ = trunkScaleXZ;
+                this.boxScaleY = boxScaleY;
+                // 盒子缩放
+                this.box.scaleY(boxScaleY);
+                // 躯干缩放
+                this.trunk.scale.set(trunkScaleXZ, trunkScaleY, trunkScaleXZ);
+                // 身体下移
+                this.body.position.setY(Box.defaultHeight * boxScaleY);
+                // 头部下移
+                this.head.position.setY(headYPosition);
+            })
+            .start();
+
+        animateFrame();
+    }
+
+    jump() {
+        console.log('Jumping!')
+    }
 }
+
+// TODO: 后续可以通过一个状态机来改造
+LittleMan.State = {
+    // 初始状态
+    init: 1,
+    // 蓄力
+    accumulation: 1 << 1,
+    // 跳跃
+    jump: 1 << 2,
+}
+
+export default LittleMan

@@ -7,12 +7,12 @@ export default class Main {
     constructor() {
         // 舞台
         this.stage = null;
-        // 游戏初始化
-        this.init();
         // 盒子组管理类
         this.boxGroupManager = null;
         // 小人
         this.littleMan = null;
+        // 游戏初始化
+        this.init();
     }
 
     init() {
@@ -36,7 +36,7 @@ export default class Main {
     }
 
     initLittleMan() {
-        this.littleMan = new LittleMan(this.boxGroupManager);
+        this.littleMan = new LittleMan(this.boxGroupManager, this.stage);
         this.boxGroupManager.setLittleMan(this.littleMan);
         this.stage.scene.add(this.littleMan.body);
     }

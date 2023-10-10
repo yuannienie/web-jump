@@ -35,7 +35,7 @@ export default class BoxGroupManager {
     // 1. 盒子不动，改变相机的位置，保证相机位置始终看向两个盒子的中点
     // 2. 相机不动，改变盒子位置，根据相对运动移动整条链上的所有盒子
     // 这里采用的第二种方法
-    updatePosition({ duration = 50 }) {
+    updatePosition({ duration = 0 }) {
         // 找到最后两个盒子的中点
         const last = this.last;
         const secondLast = last.prev;

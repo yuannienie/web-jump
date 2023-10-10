@@ -134,6 +134,11 @@ class Box {
             animateFrame();
         }
     }
+
+    scaleY(ratio) {
+        this.height = Box.defaultHeight * ratio;
+        this.mesh.scale.setY(ratio);
+    }
 }
 
 Box.defaultHeight = BOX_MAX_SIZE / 2;
