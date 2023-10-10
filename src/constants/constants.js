@@ -14,3 +14,14 @@ export const FAR = WIDTH > HEIGHT ? WIDTH : HEIGHT;
 
 // 开发模式
 export const DEV = true;
+
+// 盒子大小
+export const BOX_MAX_SIZE = WIDTH > HEIGHT ? HEIGHT / 3 : WIDTH / 3;
+export const BOX_MIN_SIZE = WIDTH > HEIGHT ? HEIGHT / 8 : WIDTH / 8;
+
+// 两个盒子之间距离
+export const BOX_MAX_DISTANCE = WIDTH > HEIGHT ? HEIGHT / 2 : WIDTH / 2;
+export const BOX_MIN_DISTANCE = WIDTH > HEIGHT ? HEIGHT / 8 : WIDTH / 8;
+
+// 盒子颜色集合
+export const BOX_COLORS = [0Xfa541c, 0xfaad14, 0x13c2c2, 0x1890ff, 0x722ed1, 0xFFFFFF, 0xa0d911];

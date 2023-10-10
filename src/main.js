@@ -1,6 +1,6 @@
-import * as THREE from 'three';
 import Stage from './objects/Stage';
-// import { setFrameAction } from './util/TweenUtil';
+import { setFrameAction } from './util/TweenUtil';
+import BoxGroupManager from './objects/box/BoxGroupManager';
 
 export default class Main {
     constructor() {
@@ -8,6 +8,8 @@ export default class Main {
         this.stage = null;
         // 游戏初始化
         this.init();
+        // 盒子组管理类
+        this.boxGroupManager = null;
     }
 
     init() {
@@ -15,16 +17,16 @@ export default class Main {
         this.stage = new Stage();
         // 初始化盒子
         this.initBoxes();
+        this.stage.scene.add(this.boxGroupManager.group);
+        // 每次动画后都要渲染
+        setFrameAction(this.stage.render.bind(this.stage));
     }
 
     initBoxes() {
-        const boxGeometry = new THREE.BoxGeometry(10, 10, 10);
-        const material = new THREE.MeshLambertMaterial({ color: 0xadadad });
-        const boxMesh = new THREE.Mesh(boxGeometry, material);
-        boxMesh.position.set(0, 0, 0);
-        boxMesh.translateY(5);
-        boxMesh.castShadow = true;
-        this.stage.scene.add(boxMesh);
+        this.boxGroupManager = new BoxGroupManager();
+        this.boxGroupManager.createBox();
+        this.boxGroupManager.createBox();
+        this.boxGroupManager.updatePosition({});
     }
 
     start() {
