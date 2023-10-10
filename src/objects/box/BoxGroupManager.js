@@ -43,6 +43,14 @@ export default class BoxGroupManager {
         const centerZ = 0.5 * (last.position.z + secondLast.position.z);
         let lastX = 0;
         let lastZ = 0;
+
+        if (this.littleMan) {
+            const { x, z } = this.littleMan.body.position;
+            // 先记录下小人最终的目的地，因为可能在盒子未移动完成之前，小人点击了跳跃
+            this.littleMan.body.finalX = x - centerX;
+            this.littleMan.body.finalZ = z - centerZ;
+        }
+
         // 配置动画参数并开始
         new TWEEN.Tween({ x: 0, z: 0 })
             .to({ x: centerX, z: centerZ }, duration)

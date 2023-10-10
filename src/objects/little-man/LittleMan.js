@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as BufferGeometryUtils from 'three/addons/utils/BufferGeometryUtils.js';
-import { LITTLE_MAN_COLOR, LITTLE_MAN_HEIGHT, LITTLE_MAN_WIDTH } from '../../constants/constants';
+import { DEV, HIGH_JUMP, JUMP_TIME, LITTLE_MAN_COLOR, LITTLE_MAN_HEIGHT, LITTLE_MAN_WIDTH } from '../../constants/constants';
 import { isMobile } from '../../util/common';
 import TWEEN from '@tweenjs/tween.js';
 import Box from '../box/Box';
@@ -185,8 +185,86 @@ class LittleMan {
         animateFrame();
     }
 
+    /**
+     * TODO：待补充
+     * 小人跳跃的整个动画与逻辑包含以下几点：
+     * 1. 小人向下一个盒子方向的初速度，其初速度大小决定于 Y 轴压缩比，空中跳跃时间为固定值，这样就可以计算其着落点
+     * 2. 小人 Y 轴上的初速度，跳跃的高度是个定值，并且分为「上升」阶段和「下降」阶段
+     */
     jump() {
         console.log('Jumping!')
+        this.moveInXZ();
+        this.moveInY();
+    }
+
+    /** 跳跃时 XZ 平面的移动 */
+    moveInXZ() {
+        // 初速度
+        const velocityXZ = Math.max(1 - this.trunkScaleY, 0.03);
+        let distance;
+        if (DEV) {
+            // 测试用，每次都跳到中央
+            distance = this.box.distance + this.box.size / 2 + this.box.next.size / 2;
+        } else {
+            distance = velocityXZ * JUMP_TIME;
+        }
+
+        let [targetX, targetZ] = [0, 0];
+        const { finalX: x, finalZ: z } = this.body;
+        if (this.box.direction === 'z') {
+            targetX = this.body.position.x;
+            targetZ = z - distance;
+        } else {
+            targetZ = this.body.position.z;
+            targetX = x + distance;
+        }
+
+        // 匀速运动
+        new TWEEN.Tween({ x: this.body.position.x, z: this.body.position.z })
+            .to({ x: targetX, z: targetZ }, JUMP_TIME)
+            .easing(TWEEN.Easing.Linear.None)
+            .onUpdate(({ x, z }) => {
+                this.body.position.setX(x);
+                this.body.position.setZ(z);
+            })
+            .start();
+
+        animateFrame();
+
+        return distance;
+    }
+
+    /** 跳跃时 Y 轴方向的移动 */
+    moveInY() {
+        const { y } = this.body.position;
+        // y 方向向上的时间
+        const upTime = JUMP_TIME * 0.5;
+        // y 方向向下的时间
+        const downTime = JUMP_TIME - upTime;
+        // 跳跃达到的高度
+        const height = Box.defaultHeight + HIGH_JUMP;
+
+        // 上升阶段，Quartic 表示平方
+        const up = new TWEEN.Tween({ y })
+            .to({ y: height }, upTime)
+            .easing(TWEEN.Easing.Quartic.Out)
+            .onUpdate(({ y }) => {
+                this.body.position.setY(y);
+            });
+
+        // 下降阶段
+        const down = new TWEEN.Tween({ y: height })
+            .to({ y: Box.defaultHeight }, downTime)
+            .easing(TWEEN.Easing.Quartic.In)
+            .onComplete(() => { })
+            .onUpdate(({ y }) => {
+                this.body.position.setY(y);
+            });
+
+        // 上升 -> 下降
+        up.chain(down).start();
+
+        animateFrame();
     }
 }
 

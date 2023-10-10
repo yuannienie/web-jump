@@ -30,3 +30,8 @@ export const BOX_COLORS = [0xfa541c, 0xfaad14, 0x13c2c2, 0x1890ff, 0x722ed1, 0xF
 export const LITTLE_MAN_WIDTH = BOX_MIN_SIZE / 2.5;
 export const LITTLE_MAN_HEIGHT = LITTLE_MAN_WIDTH * 3.0;
 export const LITTLE_MAN_COLOR = 0xf5222d;
+
+// 跳跃滞空 ms 数
+export const JUMP_TIME = 350;
+// 跳跃的高度
+export const HIGH_JUMP = WIDTH > HEIGHT ? HEIGHT / 3.5 : WIDTH / 3.5;
