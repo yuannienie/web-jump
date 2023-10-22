@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { CLIENT_HEIGHT, CLIENT_WIDTH, DEV, FAR, HEIGHT, WIDTH } from '../constants/constants';
 // DEBUG 时候用的视角控制器
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
+import Stats from 'stats.js';
 
 export default class Stage {
   constructor() {
@@ -17,6 +18,8 @@ export default class Stage {
     this.plane = null;
     // 轨道控制器
     this.controls = null;
+    // 性能监控
+    this.stats = null;
     this.init();
   }
 
@@ -26,6 +29,7 @@ export default class Stage {
     this.createLight();
     this.createCamera();
     this.createPlane();
+    if (DEV) this.createStats();
   }
 
   createRenderer() {
@@ -101,10 +105,22 @@ export default class Stage {
     this.scene.add(this.plane)
   }
 
+  // 性能监控
+  createStats() {
+    this.stats = new Stats();
+    //设置统计模式
+    // 0: fps, 1: ms, 2: mb, 3+: custom
+    this.stats.showPanel(0);
+    //将统计对象添加到 body 元素中
+    document.body.appendChild(this.stats.dom);
+  }
+
   render() {
-    const { scene, camera, renderer } = this;
+    const { scene, camera, renderer, stats } = this;
     function animate() {
+      if (DEV) stats.begin();
       renderer.render(scene, camera);
+      if (DEV) stats.end();
       requestAnimationFrame(animate);
     }
     animate();

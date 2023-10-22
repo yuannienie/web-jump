@@ -192,8 +192,9 @@ class LittleMan {
      * 2. 小人 Y 轴上的初速度，跳跃的高度是个定值，并且分为「上升」阶段和「下降」阶段
      */
     jump() {
-        console.log('Jumping!')
         this.moveInXZ();
+        this.stretchBodyAndBox();
+        this.flip();
         this.moveInY();
     }
 
@@ -263,6 +264,59 @@ class LittleMan {
 
         // 上升 -> 下降
         up.chain(down).start();
+
+        animateFrame();
+    }
+
+    /** 跳跃时翻转身体 */
+    flip() {
+        const { direction } = this.box;
+        let lastAngle = 0;
+
+        new TWEEN.Tween({ t: 0 })
+            .to({ t: JUMP_TIME }, JUMP_TIME)
+            .easing(TWEEN.Easing.Linear.None)
+            .onUpdate(({ t }) => {
+                const curAngle = 2 * Math.PI * t / JUMP_TIME;
+                if (direction === 'x') {
+                    this.bodyRotate.rotateZ(lastAngle - curAngle);
+                } else {
+                    this.bodyRotate.rotateX(lastAngle - curAngle);
+                }
+
+                lastAngle = curAngle;
+            })
+            .start();
+
+        animateFrame();
+    }
+
+    /** 回弹盒子与小人身体 */
+    stretchBodyAndBox() {
+        new TWEEN.Tween({
+            headYPosition: this.headYPosition,
+            trunkScaleXZ: this.trunkScaleXZ,
+            trunkScaleY: this.trunkScaleY,
+            boxScaleY: this.boxScaleY
+        }).to({
+            headYPosition: LITTLE_MAN_HEIGHT / 2,
+            trunkScaleXZ: 1,
+            trunkScaleY: 1,
+            boxScaleY: 1
+        }, JUMP_TIME / 3)
+            .easing(TWEEN.Easing.Linear.None)
+            .onUpdate(({
+                headYPosition,
+                trunkScaleXZ,
+                trunkScaleY,
+                boxScaleY,
+            }) => {
+                this.box.scaleY(boxScaleY);
+                this.trunk.scale.set(trunkScaleXZ, trunkScaleY, trunkScaleXZ);
+                // 回弹的时候不要设置 body 的 Y 的值，这个值会在跳跃过程中变化
+                this.head.position.setY(headYPosition);
+            })
+            .start();
 
         animateFrame();
     }
